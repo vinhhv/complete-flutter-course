@@ -34,6 +34,9 @@ RUN flutter doctor -v
 # Create non-root user
 RUN groupadd -r developer && useradd -r -g developer -G sudo -m -s /bin/bash developer
 
+RUN chown -R developer:developer /usr/local/flutter
+RUN git config --global --add safe.directory /usr/local/flutter
+
 # Switch to the non-root user
 USER developer
 ENV HOME /home/developer
