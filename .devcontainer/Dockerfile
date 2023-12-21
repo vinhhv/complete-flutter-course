@@ -21,9 +21,28 @@ RUN apt-get update \
   libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386 \
   && rm -rf /var/lib/apt/lists/*
 
-# Following https://github.com/Deadolus/android-studio-docker/blob/master/Dockerfile
-ARG ANDROID_STUDIO_URL=https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2023.1.1.26/android-studio-2023.1.1.26-linux.tar.gz
 ARG ANDROID_STUDIO_VERSION=2023.1.1.26
+ARG ANDROID_STUDIO_URL=https://redirector.gvt1.com/edgedl/android/studio/ide-zips/${ANDROID_STUDIO_VERSION}/android-studio-${ANDROID_STUDIO_VERSION}-linux.tar.gz
+# https://developer.android.com/studio#command-line-tools-only
+ARG ANDROID_SDK_VERSION=10406996
+ARG ANDROID_SDK_URL=https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_VERSION}.zip
+
+# Android Studio
+RUN wget "$ANDROID_STUDIO_URL" -O /tmp/android-studio.tar.gz && \
+  tar xvzf /tmp/android-studio.tar.gz -C /opt && \
+  rm /tmp/android-studio.tar.gz
+
+ENV ANDROID_STUDIO_HOME=/opt/android-studio
+ENV PATH="$PATH:$ANDROID_STUDIO_HOME/bin"
+
+# Android SDK (more info: https://github.com/thyrlian/AndroidSDK)
+ENV ANDROID_SDK_HOME /opt/android-sdk
+RUN mkdir -p ${ANDROID_SDK_HOME}/cmdline-tools && \
+  wget -q https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_VERSION}_latest.zip && \
+  unzip *tools*linux*.zip -d ${ANDROID_SDK_HOME}/cmdline-tools && \
+  mv ${ANDROID_SDK_HOME}/cmdline-tools/cmdline-tools ${ANDROID_SDK_HOME}/cmdline-tools/tools && \
+  rm *tools*linux*.zip
+ENV PATH ${PATH}:${ANDROID_STUDIO_HOME}/cmdline-tools/latest/bin:${ANDROID_STUDIO_HOME}/cmdline-tools/tools/bin:${ANDROID_STUDIO_HOME}/platform-tools:${ANDROID_STUDIO_HOME}/emulator
 
 # Create non-root user
 RUN groupadd -r $USER && useradd -r -g $USER -G sudo -m -s /bin/bash $USER
@@ -33,14 +52,6 @@ USER $USER
 ENV HOME /home/$USER
 # Set the working directory
 WORKDIR /home/$USER
-
-# Android Studio
-RUN wget "$ANDROID_STUDIO_URL" -O /tmp/android-studio.tar.gz && \
-  tar xvzf /tmp/android-studio.tar.gz && \
-  rm /tmp/android-studio.tar.gz
-
-ENV ANDROID_HOME=$HOME/android-studio
-ENV PATH="$PATH:$ANDROID_HOME/bin"
 
 # Download Flutter SDK (https://github.com/edwardinubuntu/flutter-web-dockerfile/blob/master/Dockerfile)
 ARG FLUTTER_SDK=$HOME/flutter
