@@ -20,6 +20,7 @@
         "wayou.vscode-todo-highlight"
       ]
     },
+    "postCreateCommand": ".devcontainer/postCreate.sh",
     "settings": {
       "workbench.colorTheme": "Dracula",
       // Causes the debug view to automatically appear when a breakpoint is hit. This
