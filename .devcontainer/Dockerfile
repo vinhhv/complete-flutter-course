@@ -36,7 +36,7 @@ WORKDIR /home/$USER
 
 # Android Studio
 RUN wget "$ANDROID_STUDIO_URL" -O /tmp/android-studio.tar.gz && \
-  sudo tar xvzf /tmp/android-studio.tar.gz && \
+  tar xvzf /tmp/android-studio.tar.gz && \
   rm /tmp/android-studio.tar.gz
 
 ENV ANDROID_HOME=$HOME/android-studio
