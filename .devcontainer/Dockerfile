@@ -50,17 +50,19 @@ RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
   rm *tools*linux*.zip
 ENV PATH ${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/cmdline-tools/tools/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator
 
+# Install Android SDK requirements
+RUN yes | sdkmanager "build-tools;34.0.0" "cmdline-tools;latest" "emulator" "platform-tools" "platforms;android-33" "system-images;android-33;default;arm64-v8a"
+RUN yes | sdkmanager --licenses
+
 # Create non-root user
 RUN groupadd -r $USER && useradd -r -g $USER -G sudo -m -s /bin/bash $USER
+RUN echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Switch to the non-root user
 USER $USER
 ENV HOME /home/$USER
 # Set the working directory
 WORKDIR /home/$USER
-
-# Install Android SDK requirements
-RUN yes | sdkmanager "build-tools;34.0.0" "emulator" "platform-tools" "system-images;android-33;default;arm64-v8a"
 
 # Download Flutter SDK (https://github.com/edwardinubuntu/flutter-web-dockerfile/blob/master/Dockerfile)
 ARG FLUTTER_SDK=$HOME/flutter
