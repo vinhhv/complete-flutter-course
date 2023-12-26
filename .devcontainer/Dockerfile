@@ -58,8 +58,8 @@ ARG ANDROID_APIS="${TARGET};${ARCH}"
 ARG EMULATOR_PACKAGE="system-images;${ANDROID_API_LEVEL};${ANDROID_APIS}"
 ARG PLATFORM_VERSION="platforms;${ANDROID_API_LEVEL}"
 ARG BUILD_TOOL="build-tools;${BUILD_TOOLS}"
-ARG ANDROID_CMD="commandlinetools-linux-8092744_latest.zip"
-ARG ANDROID_SDK_PACKAGES="${EMULATOR_PACKAGE} ${PLATFORM_VERSION} ${BUILD_TOOL} platform-tools"
+ARG CMDLINE_TOOLS="cmdline-tools;latest"
+ARG ANDROID_SDK_PACKAGES="${CMDLINE_TOOLS} ${EMULATOR_PACKAGE} ${PLATFORM_VERSION} ${BUILD_TOOL} platform-tools"
 
 # Android SDK (more info: https://github.com/thyrlian/AndroidSDK)
 ENV ANDROID_HOME /opt/android-sdk
@@ -73,8 +73,8 @@ ENV PATH ${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/cmdlin
 #============================================
 # Install required package using SDK manager
 #============================================
-RUN yes Y | sdkmanager --licenses
-RUN yes Y | sdkmanager --verbose --no_https ${ANDROID_SDK_PACKAGES}
+RUN yes | sdkmanager --verbose --no_https ${ANDROID_SDK_PACKAGES}
+RUN yes | sdkmanager --licenses
 
 #============================================
 # Create required emulator
@@ -100,15 +100,17 @@ RUN echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 # Switch to the non-root user
 USER $USER
 ENV HOME /home/$USER
+
+#=========================
+# Copying Scripts to user
+#=========================
+COPY start_emu.sh $HOME/
+COPY start_vnc.sh $HOME/
+
 # Set the working directory
 WORKDIR /home/$USER
 
-#=========================
-# Copying Scripts to root
-#=========================
-COPY . /
-
-RUN chmod a+x start_vnc.sh && chmod a+x start_emu.sh
+RUN sudo chmod a+x start_vnc.sh && sudo chmod a+x start_emu.sh
 
 # Download Flutter SDK (https://github.com/edwardinubuntu/flutter-web-dockerfile/blob/master/Dockerfile)
 ARG FLUTTER_SDK=$HOME/flutter
