@@ -1,5 +1,7 @@
 FROM ubuntu:22.04
 
+ENV DEBIAN_FRONTEND noninteractive
+
 ARG USER=developer
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
@@ -19,6 +21,8 @@ RUN apt-get update \
   zip \
   # Android Studio
   # libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386 \
+  # Android Emulator (https://github.com/amrsa1/Android-Emulator-image/blob/main/Dockerfile)
+  bzip2 libdrm-dev libxkbcommon-dev libgbm-dev libasound-dev libnss3 libxcursor1 libpulse-dev libxshmfence-dev xauth xvfb x11vnc fluxbox wmctrl libdbus-glib-1-2 \
   && rm -rf /var/lib/apt/lists/*
 
 RUN wget "https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.deb" -O /tmp/jdk-21_linux-x64_bin.deb
@@ -41,6 +45,22 @@ ARG ANDROID_SDK_URL=https://dl.google.com/android/repository/commandlinetools-li
 # ENV ANDROID_STUDIO_HOME=/opt/android-studio
 # ENV PATH="$PATH:$ANDROID_STUDIO_HOME/bin"
 
+#==============================
+# Android SDK ARGS
+#==============================
+ARG ARCH="x86_64"
+ARG TARGET="google_apis_playstore"
+ARG API_LEVEL="33"
+ARG BUILD_TOOLS="34.0.0"
+ARG ANDROID_ARCH=${ANDROID_ARCH_DEFAULT}
+ARG ANDROID_API_LEVEL="android-${API_LEVEL}"
+ARG ANDROID_APIS="${TARGET};${ARCH}"
+ARG EMULATOR_PACKAGE="system-images;${ANDROID_API_LEVEL};${ANDROID_APIS}"
+ARG PLATFORM_VERSION="platforms;${ANDROID_API_LEVEL}"
+ARG BUILD_TOOL="build-tools;${BUILD_TOOLS}"
+ARG ANDROID_CMD="commandlinetools-linux-8092744_latest.zip"
+ARG ANDROID_SDK_PACKAGES="${EMULATOR_PACKAGE} ${PLATFORM_VERSION} ${BUILD_TOOL} platform-tools"
+
 # Android SDK (more info: https://github.com/thyrlian/AndroidSDK)
 ENV ANDROID_HOME /opt/android-sdk
 RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
@@ -50,9 +70,28 @@ RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
   rm *tools*linux*.zip
 ENV PATH ${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/cmdline-tools/tools/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator
 
-# Install Android SDK requirements
-RUN yes | sdkmanager "build-tools;34.0.0" "cmdline-tools;latest" "emulator" "platform-tools" "platforms;android-33" "system-images;android-33;default;arm64-v8a"
-RUN yes | sdkmanager --licenses
+#============================================
+# Install required package using SDK manager
+#============================================
+RUN yes Y | sdkmanager --licenses
+RUN yes Y | sdkmanager --verbose --no_https ${ANDROID_SDK_PACKAGES}
+
+#============================================
+# Create required emulator
+#============================================
+ARG EMULATOR_NAME="nexus"
+ARG EMULATOR_DEVICE="Nexus 6"
+ENV EMULATOR_NAME=$EMULATOR_NAME
+ENV DEVICE_NAME=$EMULATOR_DEVICE
+RUN echo "no" | avdmanager --verbose create avd --force --name "${EMULATOR_NAME}" --device "${EMULATOR_DEVICE}" --package "${EMULATOR_PACKAGE}"
+
+#===================
+# Alias
+#===================
+ENV EMU=./start_emu.sh
+ENV EMU_HEADLESS=./start_emu_headless.sh
+ENV VNC=./start_vnc.sh
+ENV APPIUM=./start_appium.sh
 
 # Create non-root user
 RUN groupadd -r $USER && useradd -r -g $USER -G sudo -m -s /bin/bash $USER
@@ -63,6 +102,13 @@ USER $USER
 ENV HOME /home/$USER
 # Set the working directory
 WORKDIR /home/$USER
+
+#=========================
+# Copying Scripts to root
+#=========================
+COPY . /
+
+RUN chmod a+x start_vnc.sh && chmod a+x start_emu.sh
 
 # Download Flutter SDK (https://github.com/edwardinubuntu/flutter-web-dockerfile/blob/master/Dockerfile)
 ARG FLUTTER_SDK=$HOME/flutter
@@ -79,3 +125,5 @@ RUN flutter upgrade
 # Start to run Flutter commands
 # doctor to see if installation was okay
 RUN flutter doctor -v
+
+ENTRYPOINT [ "./start_vnc.sh" ]
