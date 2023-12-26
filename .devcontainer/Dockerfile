@@ -76,15 +76,6 @@ ENV PATH ${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/cmdlin
 RUN yes | sdkmanager --verbose --no_https ${ANDROID_SDK_PACKAGES}
 RUN yes | sdkmanager --licenses
 
-#============================================
-# Create required emulator
-#============================================
-ARG EMULATOR_NAME="nexus"
-ARG EMULATOR_DEVICE="Nexus 6"
-ENV EMULATOR_NAME=$EMULATOR_NAME
-ENV DEVICE_NAME=$EMULATOR_DEVICE
-RUN echo "no" | avdmanager --verbose create avd --force --name "${EMULATOR_NAME}" --device "${EMULATOR_DEVICE}" --package "${EMULATOR_PACKAGE}"
-
 #===================
 # Alias
 #===================
@@ -100,6 +91,15 @@ RUN echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 # Switch to the non-root user
 USER $USER
 ENV HOME /home/$USER
+
+#============================================
+# Create required emulator
+#============================================
+ARG EMULATOR_NAME="nexus"
+ARG EMULATOR_DEVICE="Nexus 6"
+ENV EMULATOR_NAME=$EMULATOR_NAME
+ENV DEVICE_NAME=$EMULATOR_DEVICE
+RUN echo "no" | avdmanager --verbose create avd --force --name "${EMULATOR_NAME}" --device "${EMULATOR_DEVICE}" --package "${EMULATOR_PACKAGE}"
 
 #=========================
 # Copying Scripts to user
