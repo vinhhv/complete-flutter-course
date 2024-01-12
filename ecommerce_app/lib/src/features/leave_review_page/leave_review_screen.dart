@@ -72,7 +72,7 @@ class _LeaveReviewFormState extends State<LeaveReviewForm> {
     //     _controller.text != previousReview.comment) {
     //   // TODO: Submit review
     // }
-    // Navigator.of(context).pop();
+    // context.pop();
   }
 
   @override
