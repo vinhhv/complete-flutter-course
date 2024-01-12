@@ -4,3 +4,6 @@
 # Cache
 .devcontainer/.config
 .devcontainer/.local
+
+# VSCode
+.vscode/

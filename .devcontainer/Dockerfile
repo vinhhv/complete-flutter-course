@@ -40,7 +40,7 @@ ARG ANDROID_SDK_URL=https://dl.google.com/android/repository/commandlinetools-li
 # Android Studio
 # RUN wget "$ANDROID_STUDIO_URL" -O /tmp/android-studio.tar.gz && \
 #   tar xvzf /tmp/android-studio.tar.gz -C /opt && \
-#   rm /tmp/android-studio.tar.gz
+#   rm /tmp/android-studio.tar.gm
 
 # ENV ANDROID_STUDIO_HOME=/opt/android-studio
 # ENV PATH="$PATH:$ANDROID_STUDIO_HOME/bin"
